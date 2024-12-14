@@ -100,6 +100,15 @@ export default {
               return
             }
 
+            const coordinatorValue = api.value(2, params.dataIndex);
+            const minCoordinator = 0;
+            const maxCoordinator = 100;
+            const normalizedValue = Math.min(1, Math.max(0, (coordinatorValue - minCoordinator) / (maxCoordinator - minCoordinator)));
+
+            const r = Math.round(255 * (1 - normalizedValue));
+            const b = Math.round(255 * normalizedValue);
+            const color = `rgb(${r}, 0, ${b})`;
+
             const circles = []
             for (let i = 0; i < 5; i++) {
               circles.push({
@@ -110,7 +119,7 @@ export default {
                   r: 30
                 },
                 style: {
-                  stroke: 'red',
+                  stroke: color,
                   fill: 'none',
                   lineWidth: 2
                 },
@@ -156,7 +165,7 @@ export default {
                     height: 40
                   },
                   style: {
-                    fill: 'red'
+                    fill: color
                   },
                   keyframeAnimation: {
                     duration: 1000,
