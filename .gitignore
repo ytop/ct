@@ -1,0 +1,8 @@
+/.eslintrc.js
+/babel.config.js
+/jest.config.js
+/node_modules/
+/src/components/WorldMap_v1.vue
+/src/components/WorldMap_v2.vue
+/src/components/WorldMap_v3..vue
+/.idea/
