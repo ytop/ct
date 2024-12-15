@@ -28,19 +28,98 @@ export default {
   data() {
     return {
       chart: null,
-      mapData: [
-        [20.2358421078053, 30.70913833075736, 100],
-        [121.3415644319939, 31.9672194986475, 30],
-        [116.0329284196291, 39.6141808346214, 80],
-        [113.03790632245, 28.1985153835008, 61],
-        [104.98925630313, 35.3839988649537, 70],
-        [-108.62251255796, 26.6708486282843, 81]
+      timelineData: [
+        {
+          title: 'Helpdesk tickets',
+          timestamp: '2024-03-20 09:00:00',
+          status: 'successful',
+          type: 'success',
+          description: 'All tickets processed successfully'
+        },
+        {
+          title: 'CLD Payments Input Error',
+          timestamp: '2024-03-20 09:30:00',
+          status: 'failed',
+          type: 'danger',
+          description: 'Invalid payment format detected in batch processing'
+        },
+        {
+          title: 'CLD Payments Authorized Payment',
+          timestamp: '2024-03-20 10:00:00',
+          status: 'successful',
+          type: 'success',
+          description: 'All payments authorized successfully'
+        },
+        {
+          title: 'CLD Payments Time Critical Payment Failure',
+          timestamp: '2024-03-20 10:30:00',
+          status: 'failed',
+          type: 'danger',
+          description: 'System timeout during critical payment processing'
+        },
+        {
+          title: 'CLD Payments STP Rate',
+          timestamp: '2024-03-20 11:00:00',
+          status: 'successful',
+          type: 'success',
+          description: 'STP rate achieved: 98.5%'
+        },
+        {
+          title: 'CLD Payments Reconsiliation',
+          timestamp: '2024-03-20 11:30:00',
+          status: 'successful',
+          type: 'success',
+          description: 'Reconciliation completed with no discrepancies'
+        },
+        {
+          title: 'OSD Custody Recondiliation',
+          timestamp: '2024-03-20 12:00:00',
+          status: 'not_started',
+          type: 'info',
+          description: 'Scheduled for afternoon batch'
+        },
+        {
+          title: 'OSD Custody Erros in Client Cash statement',
+          timestamp: '2024-03-20 12:30:00',
+          status: 'not_started',
+          type: 'info',
+          description: 'Pending verification'
+        },
+        {
+          title: 'FID Client Onboarding',
+          timestamp: '2024-03-20 13:00:00',
+          status: 'successful',
+          type: 'success',
+          description: '5 new clients onboarded successfully'
+        },
+        {
+          title: 'TRY Intraday Liquidity',
+          timestamp: '2024-03-20 13:30:00',
+          status: 'not_started',
+          type: 'info',
+          description: 'Scheduled for end of day processing'
+        }
       ],
       mapBackgroundStyle: {
         backgroundImage: 'url(' + require('@/assets/world-map-empty.png') + ')',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }
+    }
+  },
+  computed: {
+    mapData() {
+      return this.timelineData.map(item => {
+        return [
+          Math.random() * 240 - 120, // Random longitude between -100 and 100
+          Math.random() * 80 - 10,   // Random latitude between 10 and 50
+          Math.floor(Math.random() * 100) + 1, // Random value between 1 and 100
+          {
+            title: item.title,
+            status: item.status
+          }
+        ]
+      })
     }
   },
   mounted() {
@@ -53,7 +132,6 @@ export default {
   },
   methods: {
     async initChart() {
-      // Register the world map data with ECharts
       this.$echarts.registerMap('world', worldGeoJson)
       
       this.chart = this.$echarts.init(this.$refs.chartContainer)
@@ -64,7 +142,7 @@ export default {
           trigger: 'item',
           formatter: ({name, value}) => {
             if (Array.isArray(value)) {
-              return `${name}<br/>Value: ${value[2]}`
+              return `${value[3].title}<br/>Status: ${value[3].status}<br/>Value: ${value[2]}`
             }
             return name
           }
@@ -100,14 +178,24 @@ export default {
               return
             }
 
-            const coordinatorValue = api.value(2, params.dataIndex);
-            const minCoordinator = 0;
-            const maxCoordinator = 100;
-            const normalizedValue = Math.min(1, Math.max(0, (coordinatorValue - minCoordinator) / (maxCoordinator - minCoordinator)));
-
-            const r = Math.round(255 * (1 - normalizedValue));
-            const b = Math.round(255 * normalizedValue);
-            const color = `rgb(${r}, 0, ${b})`;
+            // const coordinatorValue = api.value(2, params.dataIndex);
+            const status = api.value(3, params.dataIndex).status;
+            let color;
+            
+            // Color based on status
+            switch(status) {
+              case 'successful':
+                color = '#67C23A';
+                break;
+              case 'failed':
+                color = '#F56C6C';
+                break;
+              case 'not_started':
+                color = '#909399';
+                break;
+              default:
+                color = '#409EFF';
+            }
 
             const circles = []
             for (let i = 0; i < 5; i++) {
