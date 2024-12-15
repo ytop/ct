@@ -110,10 +110,26 @@ export default {
   computed: {
     mapData() {
       return this.timelineData.map(item => {
+        // Convert status to numeric value
+        let statusValue;
+        switch (item.status) {
+          case 'successful':
+            statusValue = 95; // Highest value for successful status
+            break;
+          case 'failed':
+            statusValue = 5;  // Low value for failed status
+            break;
+          case 'not_started':
+            statusValue = 50;  // Middle value for not started status
+            break;
+          default:
+            statusValue = 0;   // Default value for unknown status
+        }
+
         return [
-          Math.random() * 240 - 120, // Random longitude between -100 and 100
-          Math.random() * 80 - 10,   // Random latitude between 10 and 50
-          Math.floor(Math.random() * 100) + 1, // Random value between 1 and 100
+          Math.random() * 240 - 120, // Random longitude between -120 and 120
+          Math.random() * 80 - 10,   // Random latitude between -10 and 70
+          statusValue,               // Value based on status instead of random
           {
             title: item.title,
             status: item.status
@@ -133,14 +149,14 @@ export default {
   methods: {
     async initChart() {
       this.$echarts.registerMap('world', worldGeoJson)
-      
+
       this.chart = this.$echarts.init(this.$refs.chartContainer)
-      
+
       const option = {
         backgroundColor: 'transparent',
         tooltip: {
           trigger: 'item',
-          formatter: ({name, value}) => {
+          formatter: ({ name, value }) => {
             if (Array.isArray(value)) {
               return `${value[3].title}<br/>Status: ${value[3].status}<br/>Value: ${value[2]}`
             }
@@ -173,28 +189,22 @@ export default {
               api.value(0, params.dataIndex),
               api.value(1, params.dataIndex)
             ])
-            
+
             if (!coord) {
               return
             }
 
-            // const coordinatorValue = api.value(2, params.dataIndex);
-            const status = api.value(3, params.dataIndex).status;
+            const coordinatorValue = api.value(2, params.dataIndex);
             let color;
-            
-            // Color based on status
-            switch(status) {
-              case 'successful':
-                color = '#67C23A';
-                break;
-              case 'failed':
-                color = '#F56C6C';
-                break;
-              case 'not_started':
-                color = '#909399';
-                break;
-              default:
-                color = '#409EFF';
+            if (coordinatorValue === 95) {
+              color = '#00FF00';  // Green
+            } else if (coordinatorValue === 50) {
+              color = '#808080';  // Grey
+            } else if (coordinatorValue === 5) {
+              color = '#FF0000';  // Red
+            } else {
+              // Fallback color for any other values
+              color = '#808080';  // Default to grey
             }
 
             const circles = []
